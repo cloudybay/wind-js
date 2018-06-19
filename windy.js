@@ -1,8 +1,4 @@
 
-const NULL_WIND_VECTOR = [NaN, NaN, null]
-
-
-
 class Windy extends MDMV {
 
     constructor(canvas, bounds, width, height, extent, options) {

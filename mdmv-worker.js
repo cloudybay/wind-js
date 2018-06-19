@@ -1,3 +1,7 @@
+
+const NULL_VECTOR = [NaN, NaN, null]
+
+
 class MDMV {
     constructor() {
     }
@@ -202,7 +206,7 @@ class MDMV {
          */
         function field(x, y) {
             var column = columns[Math.round(x)]
-            return column && column[Math.round(y)] || NULL_WIND_VECTOR
+            return column && column[Math.round(y)] || NULL_VECTOR
         }
 
         // Frees the massive "columns" array for GC. Without this, the array is leaked (in Chrome) each time a new
