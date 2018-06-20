@@ -7,27 +7,27 @@ class Windy extends MDMV {
         // velocity at which particle intensity is minimum (m/s)
         this.MIN_VELOCITY_INTENSITY = (options && options.minVelocity) || 0
         // velocity at which particle intensity is maximum (m/s)
-        this.MAX_VELOCITY_INTENSITY = (options && options.maxVelocity) || 10
+        this.MAX_VELOCITY_INTENSITY = (options && options.maxVelocity) || 26
         // scale for wind velocity (completely arbitrary--this value looks nice)
-        this.VELOCITY_SCALE = ((options && options.velocityScale) || 0.005) * (Math.pow(window.devicePixelRatio,1/3) || 1)
+        this.VELOCITY_SCALE = ((options && options.velocityScale) || 0.015) * (Math.pow(window.devicePixelRatio,1/3) || 1)
         // max number of frames a particle is drawn before regeneration
         this.MAX_PARTICLE_AGE = (options && options.particleAge) || 90
         // line width of a drawn particle
         this.PARTICLE_LINE_WIDTH = (options && options.lineWidth) || 1
         // particle count scalar (completely arbitrary--this values looks nice)
-        this.PARTICLE_MULTIPLIER = (options && options.particleMultiplier) || 1 / 300
+        this.PARTICLE_MULTIPLIER = (options && options.particleMultiplier) || 1 / 600
         // desired frames per second
-        this.FRAME_RATE = (options && options.frameRate) || 15
+        this.FRAME_RATE = (options && options.frameRate) || 30
         this.FRAME_TIME = 1000 / this.FRAME_RATE
 
         // multiply particle count for mobiles by this amount
         this.PARTICLE_REDUCTION = (Math.pow(window.devicePixelRatio,1/3) || 1.6)
 
         this.colorScale = (options && options.colorScale) || [
-            "rgb(36,104, 180)",
-            "rgb(60,157, 194)",
-            "rgb(128,205,193 )",
-            "rgb(151,218,168 )",
+            "rgb(36,104,180)",
+            "rgb(60,157,194)",
+            "rgb(128,205,193)",
+            "rgb(151,218,168)",
             "rgb(198,231,181)",
             "rgb(238,247,217)",
             "rgb(255,238,159)",
@@ -53,7 +53,9 @@ class Windy extends MDMV {
         }
 
         // -1: stop, 0: waiting data, 1: running
-        this.running_flag = -1;
+        this.running_flag = -1
+        this._timer_prepare_animate = null
+        this._animationLoop = null
 
         if (options.worker_uri) {
             var self = this
@@ -62,8 +64,7 @@ class Windy extends MDMV {
                 let columns = e.data.columns
                 let field = Windy.createField(columns, self.canvasBound)
                 if (self.field) {
-                    self.field.release()
-                    self.field = null
+                    self.field = self.field.release()
                 }
                 self.field = field
             }
@@ -91,27 +92,31 @@ class Windy extends MDMV {
 
             let field = Windy.createField(columns, self.canvasBound)
             if (self.field) {
-                self.field.release()
-                self.field = null
+                self.field = self.field.release()
             }
             self.field = field
         }
+        return self
     }
 
     animate() {
         if (!this.field) { return }
         var self = this
-        function windIntensityColorScale(min, max) {
-            self.colorScale.indexFor = function (m) {
-                // map velocity speed to a style
-                return Math.max(0, Math.min((self.colorScale.length - 1),
-                    Math.round((m - min) / (max - min) * (self.colorScale.length - 1))))
+        function windIntensityColorScale() {
+            if (!self.colorScale.indexFor) {
+                let min = self.MIN_VELOCITY_INTENSITY,
+                    max = self.MAX_VELOCITY_INTENSITY
+                self.colorScale.indexFor = function (m) {
+                    // map velocity speed to a style
+                    return Math.max(0, Math.min((self.colorScale.length - 1),
+                        Math.round((m - min) / (max - min) * (self.colorScale.length - 1))))
 
+                }
             }
             return self.colorScale
         }
 
-        var colorStyles = windIntensityColorScale(self.MIN_VELOCITY_INTENSITY, self.MAX_VELOCITY_INTENSITY)
+        var colorStyles = windIntensityColorScale()
         var buckets = colorStyles.map(function() { return [] })
 
         var particleCount = Math.round(self.canvasBound.width * self.canvasBound.height * self.PARTICLE_MULTIPLIER)
@@ -190,7 +195,7 @@ class Windy extends MDMV {
 
         var then = new Date;
         (function frame() {
-            self.animationLoop = requestAnimationFrame(frame)
+            self._animationLoop = requestAnimationFrame(frame)
             var now = new Date
             var delta = now - then
             if (delta > self.FRAME_TIME) {
@@ -207,26 +212,39 @@ class Windy extends MDMV {
             self.running_flag = 0;
             (function prepare_animate() {
                 if (self.field) {
+                    if (self._animationLoop) {
+                        cancelAnimationFrame(self._animationLoop)
+                        self._animationLoop = null
+                    }
                     self.running_flag = 1
                     self.animate()
                 }
                 else if (self.running_flag == 0) {
-                    setTimeout(prepare_animate, 10)
+                    self._timer_prepare_animate = setTimeout(prepare_animate, 100)
                 }
             }())
         }
+        return self
     }
 
     stop() {
         this.running_flag = -1
-        if (this.animationLoop) { cancelAnimationFrame(this.animationLoop) }
+        if (this._timer_prepare_animate) {
+            clearTimeout(this._timer_prepare_animate)
+            this._timer_prepare_animate = null
+        }
+        if (this._animationLoop) {
+            cancelAnimationFrame(this._animationLoop)
+            this._animationLoop = null
+        }
+        return this
     }
 
     release() {
         this.stop()
         if (this.field) {
-            this.field.release()
-            this.field = null
+            this.field = this.field.release()
         }
+        return null
     }
 }
