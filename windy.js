@@ -76,7 +76,7 @@ class Windy extends MDMV {
 
     setData(gridData) {
         var self = this
-        if (gridData.header && gridData.data) {
+        if (gridData && gridData.header && gridData.data) {
             if (self.worker) {
                 (function prepare_columns() {
                     if (self.data_lock == 0) {
