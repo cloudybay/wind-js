@@ -277,8 +277,3 @@ class Windy extends MDMV {
         return null
     }
 }
-
-
-export {
-    Windy
-}
