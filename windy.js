@@ -1,6 +1,4 @@
 
-require('./mdmv-worker')
-
 class Windy extends MDMV {
 
     constructor(canvas, bounds, width, height, extent, options) {
