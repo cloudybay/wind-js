@@ -1,4 +1,6 @@
 
+require('./mdmv-worker')
+
 class Windy extends MDMV {
 
     constructor(canvas, bounds, width, height, extent, options) {
@@ -274,4 +276,9 @@ class Windy extends MDMV {
         }
         return null
     }
+}
+
+
+export {
+    Windy
 }
