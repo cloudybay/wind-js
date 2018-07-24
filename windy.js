@@ -140,7 +140,7 @@ class Windy extends MDMV {
 
         var particleCount = Math.round(self.canvasBound.width * self.canvasBound.height * self.PARTICLE_MULTIPLIER)
         if (Windy.isMobile()) {
-            particleCount *= PARTICLE_REDUCTION
+            particleCount *= this.PARTICLE_REDUCTION
         }
 
         var fadeFillStyle = "rgba(0, 0, 0, 0.97)"
