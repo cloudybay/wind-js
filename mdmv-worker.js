@@ -262,8 +262,3 @@ onmessage = function(e) {
     )
     postMessage({ columns: columns })
 }
-
-
-export {
-    MDMV
-}
