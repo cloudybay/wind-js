@@ -112,6 +112,7 @@ class Windy extends MDMV {
             self.gridData = gridData
             if (self.field) {
                 self.field = self.field.release()
+                self.field = null
             }
         }
         return self
@@ -152,39 +153,41 @@ class Windy extends MDMV {
 
         function evolve() {
             buckets.forEach(function(bucket) { bucket.length = 0 })
-            particles.forEach(function(particle) {
-                if (particle.age > self.MAX_PARTICLE_AGE) {
-                    self.field.randomize(particle).age = 0
-                    over_part_count ++
-                    if (over_part_count >= particleCount) {
-                        over_part_count = 0
+            if (self.field) {
+                particles.forEach(function(particle) {
+                    if (particle.age > self.MAX_PARTICLE_AGE) {
+                        self.field.randomize(particle).age = 0
+                        over_part_count ++
+                        if (over_part_count >= particleCount) {
+                            over_part_count = 0
+                        }
                     }
-                }
-                var x = particle.x
-                var y = particle.y
-                var v = self.field(x, y)
-                var m = v[2]
-                if (m === null) {
-                    // particle has escaped the grid, never to return...
-                    particle.age = self.MAX_PARTICLE_AGE
-                }
-                else {
-                    var xt = x + v[0]
-                    var yt = y + v[1]
-                    if (self.field(xt, yt)[2] !== null) {
-                        // Path from (x,y) to (xt,yt) is visible, so add this particle to the appropriate draw bucket.
-                        particle.xt = xt
-                        particle.yt = yt
-                        buckets[colorStyles.indexFor(m)].push(particle)
+                    var x = particle.x
+                    var y = particle.y
+                    var v = self.field(x, y)
+                    var m = v[2]
+                    if (m === null) {
+                        // particle has escaped the grid, never to return...
+                        particle.age = self.MAX_PARTICLE_AGE
                     }
                     else {
-                        // Particle isn't visible, but it still moves through the field.
-                        particle.x = xt
-                        particle.y = yt
+                        var xt = x + v[0]
+                        var yt = y + v[1]
+                        if (self.field(xt, yt)[2] !== null) {
+                            // Path from (x,y) to (xt,yt) is visible, so add this particle to the appropriate draw bucket.
+                            particle.xt = xt
+                            particle.yt = yt
+                            buckets[colorStyles.indexFor(m)].push(particle)
+                        }
+                        else {
+                            // Particle isn't visible, but it still moves through the field.
+                            particle.x = xt
+                            particle.y = yt
+                        }
                     }
-                }
-                particle.age += 1
-            })
+                    particle.age += 1
+                })
+            }
         }
 
         var g = this.canvas.getContext("2d")
