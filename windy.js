@@ -11,13 +11,13 @@ class Windy extends MDMV {
         // scale for wind velocity (completely arbitrary--this value looks nice)
         this.VELOCITY_SCALE = ((options && options.velocityScale) || 0.015) * (Math.pow(window.devicePixelRatio,1/3) || 1)
         // max number of frames a particle is drawn before regeneration
-        this.MAX_PARTICLE_AGE = (options && options.particleAge) || 90
+        this.MAX_PARTICLE_AGE = (options && options.particleAge) || 120
         // line width of a drawn particle
         this.PARTICLE_LINE_WIDTH = (options && options.lineWidth) || 1
         // particle count scalar (completely arbitrary--this values looks nice)
-        this.PARTICLE_MULTIPLIER = (options && options.particleMultiplier) || 1 / 600
+        this.PARTICLE_MULTIPLIER = (options && options.particleMultiplier) || 1 / 200
         // desired frames per second
-        this.FRAME_RATE = (options && options.frameRate) || 30
+        this.FRAME_RATE = (options && options.frameRate) || 16
         this.FRAME_TIME = 1000 / this.FRAME_RATE
 
         // multiply particle count for mobiles by this amount
@@ -58,6 +58,7 @@ class Windy extends MDMV {
         this._timer_prepare_columns = null
         this._timer_prepare_animate = null
         this._animationLoop = null
+        this._animationTimer = null
 
         if (options.worker_uri) {
             var self = this
@@ -164,6 +165,7 @@ class Windy extends MDMV {
                     }
                     var x = particle.x
                     var y = particle.y
+
                     var v = self.field(x, y)
                     var m = v[2]
                     if (m === null) {
@@ -217,19 +219,32 @@ class Windy extends MDMV {
                     g.stroke()
                 }
             })
-        }
+        };
 
-        var then = new Date;
+        // var then = new Date;
+        // (function frame() {
+        //     self._animationLoop = requestAnimationFrame(frame)
+        //     var now = new Date
+        //     var delta = now - then
+        //     if (delta > self.FRAME_TIME) {
+        //         then = now - (delta % self.FRAME_TIME)
+        //         evolve()
+        //         draw()
+        //     }
+        // })()
+
         (function frame() {
-            self._animationLoop = requestAnimationFrame(frame)
-            var now = new Date
-            var delta = now - then
-            if (delta > self.FRAME_TIME) {
-                then = now - (delta % self.FRAME_TIME)
-                evolve()
-                draw()
+            try {
+                self._animationTimer = setTimeout(function() {
+                  self._animationLoop = requestAnimationFrame(frame);
+                  evolve();
+                  draw();
+                }, 1000 / self.FRAME_RATE);
             }
-        })()
+            catch (e) {
+                console.error(e);
+            }
+        })();
     }
 
     start() {
@@ -238,10 +253,15 @@ class Windy extends MDMV {
             self.running_flag = 0;
             (function prepare_animate() {
                 if (self.field) {
-                    if (self._animationLoop) {
-                        cancelAnimationFrame(self._animationLoop)
-                        self._animationLoop = null
+                    if (self._animationTimer) {
+                        clearTimeout(self._animationTimer);
+                        self._animationTimer = null;
                     }
+                    if (self._animationLoop) {
+                        cancelAnimationFrame(self._animationLoop);
+                        self._animationLoop = null;
+                    }
+
                     self.running_flag = 1
                     self.animate()
                 }
@@ -258,6 +278,11 @@ class Windy extends MDMV {
         if (this._timer_prepare_animate) {
             clearTimeout(this._timer_prepare_animate)
             this._timer_prepare_animate = null
+        }
+
+        if (this._animationTimer) {
+            clearTimeout(this._animationTimer);
+            this._animationTimer = null;
         }
         if (this._animationLoop) {
             cancelAnimationFrame(this._animationLoop)
