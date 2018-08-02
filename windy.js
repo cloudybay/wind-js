@@ -41,16 +41,7 @@ class Windy extends MDMV {
             "rgb(180,0,35)"
         ]
 
-        this.canvas = canvas
-        this.canvasBound = Windy.buildBounds(bounds, width, height)
-        this.mapBounds = {
-            south: Windy.deg2rad(extent[0][1]),
-            north: Windy.deg2rad(extent[1][1]),
-            east: Windy.deg2rad(extent[1][0]),
-            west: Windy.deg2rad(extent[0][0]),
-            width: width,
-            height: height
-        }
+        this.setCanvas(canvas, bounds, width, height, extent);
 
         // -1: stop, 0: waiting field ready, 1: running
         this.running_flag = -1
@@ -64,15 +55,31 @@ class Windy extends MDMV {
             var self = this
             self.worker = new Worker(options.worker_uri);
             self.worker.onmessage = function (e) {
-                self.data_lock = 0
-                let columns = e.data.columns
-                let field = Windy.createField(columns, self.canvasBound)
+                self.data_lock = 0;
+                let columns = e.data.columns;
+                let field = Windy.createField(columns, self.canvasBound);
                 if (self.field) {
-                    self.field = self.field.release()
+                    self.field.release();
+                    self.field = null;
                 }
-                self.field = field
+                self.field = field;
             }
         }
+    }
+
+    setCanvas(canvas, bounds, width, height, extent) {
+        this.release();
+        this.canvas = canvas;
+        this.canvasBound = Windy.buildBounds(bounds, width, height);
+        this.mapBounds = {
+            south: Windy.deg2rad(extent[0][1]),
+            north: Windy.deg2rad(extent[1][1]),
+            east: Windy.deg2rad(extent[1][0]),
+            west: Windy.deg2rad(extent[0][0]),
+            width: width,
+            height: height
+        };
+        return this;
     }
 
     setData(gridData) {
@@ -104,7 +111,8 @@ class Windy extends MDMV {
                 )
                 let field = Windy.createField(columns, self.canvasBound)
                 if (self.field) {
-                    self.field = self.field.release()
+                    self.field.release();
+                    self.field = null;
                 }
                 self.field = field
             }
@@ -112,8 +120,8 @@ class Windy extends MDMV {
         else {
             self.gridData = gridData
             if (self.field) {
-                self.field = self.field.release()
-                self.field = null
+                self.field.release();
+                self.field = null;
             }
         }
         return self
@@ -292,14 +300,16 @@ class Windy extends MDMV {
     }
 
     release() {
-        this.stop()
+        this.stop();
         if (this._timer_prepare_columns) {
-            clearTimeout(this._timer_prepare_columns)
-            this._timer_prepare_columns = null
+            clearTimeout(this._timer_prepare_columns);
+            this._timer_prepare_columns = null;
         }
         if (this.field) {
-            this.field = this.field.release()
+            this.field.release();
+            this.field = null;
         }
-        return null
+        return this;
     }
+
 }
