@@ -86,10 +86,10 @@ class MDMV {
      * Calculate distortion of the wind vector caused by the shape of the projection at point (x, y). The wind
      * vector is modified in place and returned by this function.
      */
-    static distort(projection, lo, la, x, y, scale, wind, windy) {
+    static distort(lo, la, x, y, scale, wind, extent) {
         var u = wind[0] * scale
         var v = wind[1] * scale
-        var d = MDMV.distortion(projection, lo, la, x, y, windy)
+        var d = MDMV.distortion(lo, la, x, y, extent)
 
         // Scale distortion vectors by u and v, then add.
         wind[0] = d[0] * u + d[2] * v
@@ -97,14 +97,14 @@ class MDMV {
         return wind
     }
 
-    static distortion(projection, λ, φ, x, y, windy) {
+    static distortion(λ, φ, x, y, extent) {
         var τ = 2 * Math.PI
         var H = Math.pow(10, -5.2)
         var hλ = λ < 0 ? H : -H
         var hφ = φ < 0 ? H : -H
 
-        var pλ = MDMV.project(φ, λ + hλ,windy)
-        var pφ = MDMV.project(φ + hφ, λ, windy)
+        var pλ = MDMV.project(φ, λ + hλ, extent)
+        var pφ = MDMV.project(φ + hφ, λ, extent)
 
         // Meridian scale factor (see Snyder, equation 4-3), where R = 1. This handles issue where length of 1º λ
         // changes depending on φ. Without this, there is a pinching effect at the poles.
@@ -162,7 +162,6 @@ class MDMV {
     }
 
     static interpolateField(vscale, header, grid, bounds, extent) {
-        var projection = {}
         var mapArea = ((extent.south - extent.north) * (extent.west - extent.east))
         var velocityScale = vscale * Math.pow(mapArea, 0.4)
 
@@ -178,7 +177,7 @@ class MDMV {
                     if (isFinite(lo)) {
                         let wind = MDMV.interpolate(header, grid, lo, la)
                         if (wind) {
-                            wind = MDMV.distort(projection, lo, la, x, y, velocityScale, wind, extent)
+                            wind = MDMV.distort(lo, la, x, y, velocityScale, wind, extent)
                             column[y+1] = column[y] = wind
                         }
                     }

@@ -152,8 +152,6 @@ class Windy extends MDMV {
             particleCount *= this.PARTICLE_REDUCTION
         }
 
-        var fadeFillStyle = "rgba(0, 0, 0, 0.97)"
-
         var particles = []
         for (var i = 0; i < particleCount; i++) {
             particles.push(self.field.randomize({age: Math.floor(Math.random() * self.MAX_PARTICLE_AGE) + 0}))
@@ -202,16 +200,14 @@ class Windy extends MDMV {
 
         var g = this.canvas.getContext("2d")
         g.lineWidth = self.PARTICLE_LINE_WIDTH
-        g.fillStyle = fadeFillStyle
-        g.globalAlpha = 0.6
+        g.fillStyle = "rgba(0, 0, 0, 0.99)"
+        g.globalAlpha = 0.9
 
         function draw() {
             // Fade existing particle trails.
-            var prev = "lighter"
             g.globalCompositeOperation = "destination-in"
             g.fillRect(self.canvasBound.x, self.canvasBound.y, self.canvasBound.width, self.canvasBound.height)
-            g.globalCompositeOperation = prev
-            g.globalAlpha = 0.9
+            g.globalCompositeOperation = "lighter"
 
             // Draw new particle trails.
             buckets.forEach(function(bucket, i) {
