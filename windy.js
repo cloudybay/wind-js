@@ -226,30 +226,30 @@ class Windy extends MDMV {
             })
         };
 
-        var then = new Date;
-        (function frame() {
-            self._animationLoop = requestAnimationFrame(frame)
-            var now = new Date
-            var delta = now - then
-            if (delta > self.FRAME_TIME) {
-                then = now - (delta % self.FRAME_TIME)
-                evolve()
-                draw()
-            }
-        })();
-
+        // var then = new Date;
         // (function frame() {
-        //     try {
-        //         self._animationTimer = setTimeout(function() {
-        //           self._animationLoop = requestAnimationFrame(frame);
-        //           evolve();
-        //           draw();
-        //         }, 1000 / self.FRAME_RATE);
-        //     }
-        //     catch (e) {
-        //         console.error(e);
+        //     self._animationLoop = requestAnimationFrame(frame)
+        //     var now = new Date
+        //     var delta = now - then
+        //     if (delta > self.FRAME_TIME) {
+        //         then = now - (delta % self.FRAME_TIME)
+        //         evolve()
+        //         draw()
         //     }
         // })();
+
+        (function frame() {
+            try {
+                self._animationTimer = setTimeout(function() {
+                  self._animationLoop = requestAnimationFrame(frame);
+                  evolve();
+                  draw();
+                }, 1000 / self.FRAME_RATE);
+            }
+            catch (e) {
+                console.error(e);
+            }
+        })();
     }
 
     start() {
