@@ -7,7 +7,7 @@ class Windy extends MDMV {
         // velocity at which particle intensity is minimum (m/s)
         this.MIN_VELOCITY_INTENSITY = (options && options.minVelocity) || 0
         // velocity at which particle intensity is maximum (m/s)
-        this.MAX_VELOCITY_INTENSITY = (options && options.maxVelocity) || 26
+        this.MAX_VELOCITY_INTENSITY = (options && options.maxVelocity) || 10
         // scale for wind velocity (completely arbitrary--this value looks nice)
         this.VELOCITY_SCALE = ((options && options.velocityScale) || 0.015) * (Math.pow(window.devicePixelRatio,1/3) || 1)
         // max number of frames a particle is drawn before regeneration
@@ -19,6 +19,7 @@ class Windy extends MDMV {
         // desired frames per second
         this.FRAME_RATE = (options && options.frameRate) || 16
         this.FRAME_TIME = 1000 / this.FRAME_RATE
+        this.TRAIL_AGE = (options && options.trailAge) || 0.9;
 
         // multiply particle count for mobiles by this amount
         this.PARTICLE_REDUCTION = (Math.pow(window.devicePixelRatio,1/3) || 1.6)
@@ -201,7 +202,7 @@ class Windy extends MDMV {
         var g = this.canvas.getContext("2d")
         g.lineWidth = self.PARTICLE_LINE_WIDTH
         g.fillStyle = "rgba(0, 0, 0, 0.99)"
-        g.globalAlpha = 0.9
+        g.globalAlpha = self.TRAIL_AGE
 
         function draw() {
             // Fade existing particle trails.
@@ -225,30 +226,30 @@ class Windy extends MDMV {
             })
         };
 
-        // var then = new Date;
-        // (function frame() {
-        //     self._animationLoop = requestAnimationFrame(frame)
-        //     var now = new Date
-        //     var delta = now - then
-        //     if (delta > self.FRAME_TIME) {
-        //         then = now - (delta % self.FRAME_TIME)
-        //         evolve()
-        //         draw()
-        //     }
-        // })()
-
+        var then = new Date;
         (function frame() {
-            try {
-                self._animationTimer = setTimeout(function() {
-                  self._animationLoop = requestAnimationFrame(frame);
-                  evolve();
-                  draw();
-                }, 1000 / self.FRAME_RATE);
-            }
-            catch (e) {
-                console.error(e);
+            self._animationLoop = requestAnimationFrame(frame)
+            var now = new Date
+            var delta = now - then
+            if (delta > self.FRAME_TIME) {
+                then = now - (delta % self.FRAME_TIME)
+                evolve()
+                draw()
             }
         })();
+
+        // (function frame() {
+        //     try {
+        //         self._animationTimer = setTimeout(function() {
+        //           self._animationLoop = requestAnimationFrame(frame);
+        //           evolve();
+        //           draw();
+        //         }, 1000 / self.FRAME_RATE);
+        //     }
+        //     catch (e) {
+        //         console.error(e);
+        //     }
+        // })();
     }
 
     start() {
