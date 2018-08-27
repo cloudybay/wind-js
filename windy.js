@@ -226,14 +226,7 @@ class Windy extends MDMV {
             })
         };
 
-        if (self.FRAME_RATE >= 60) {
-            (function frame() {
-                self._animationLoop = requestAnimationFrame(frame)
-                evolve()
-                draw()
-            })();
-        }
-        else {
+        if (self.FRAME_RATE < 60) {
             (function frame() {
                 try {
                     self._animationTimer = setTimeout(function() {
@@ -245,6 +238,13 @@ class Windy extends MDMV {
                 catch (e) {
                     console.error(e);
                 }
+            })();
+        }
+        else {
+            (function frame() {
+                self._animationLoop = requestAnimationFrame(frame)
+                evolve()
+                draw()
             })();
         }
     }
