@@ -13,7 +13,7 @@ class MDMV {
         var y = Math.max(Math.floor(upperLeft[1], 0), 0)
         var xMax = Math.min(Math.ceil(lowerRight[0], width), width - 1)
         var yMax = Math.min(Math.ceil(lowerRight[1], height), height - 1)
-        return {x: x, y: y, xMax: width, yMax: yMax, width: width, height: height}
+        return {x: x, y: y, xMax: xMax, yMax: yMax, width: width, height: height}
     }
 
     static deg2rad(deg) {
